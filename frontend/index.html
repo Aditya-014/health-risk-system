@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Early Disease Risk Checker</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #020617, #0f172a);
+      color: #e5e7eb;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .card {
+      background: #020617;
+      padding: 25px;
+      border-radius: 12px;
+      width: 400px;
+      box-shadow: 0 0 25px rgba(0,0,0,0.6);
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-top: 10px;
+      font-size: 14px;
+    }
+
+    input {
+      width: 100%;
+      padding: 7px;
+      margin-top: 4px;
+      border-radius: 6px;
+      border: none;
+      outline: none;
+    }
+
+    button {
+      width: 100%;
+      margin-top: 18px;
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      background: #22c55e;
+      color: black;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #16a34a;
+    }
+
+    .result {
+      margin-top: 18px;
+      padding: 12px;
+      background: #020617;
+      border-radius: 8px;
+      display: none;
+      line-height: 1.6;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="card">
+  <h2>Health Risk Checker</h2>
+
+  <label>Age</label>
+  <input id="age" type="number" value="22">
+
+  <label>BMI</label>
+  <input id="bmi" type="number" step="0.1" value="23.5">
+
+  <label>Activity Level (1–5)</label>
+  <input id="activity" type="number" min="1" max="5" value="3">
+
+  <label>Sleep Hours</label>
+  <input id="sleep" type="number" step="0.1" value="6.5">
+
+  <label>Family History (0 = No, 1 = Yes)</label>
+  <input id="family" type="number" min="0" max="1" value="0">
+
+  <label>Sugar Intake (1–5)</label>
+  <input id="sugar" type="number" min="1" max="5" value="3">
+
+  <label>Stress Level (1–5)</label>
+  <input id="stress" type="number" min="1" max="5" value="2">
+
+  <button onclick="checkRisk()">Check My Risk</button>
+
+  <div class="result" id="result"></div>
+</div>
+
+<script>
+function checkRisk() {
+
+  fetch("http://127.0.0.1:8000/predict", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      age: Number(age.value),
+      bmi: Number(bmi.value),
+      activity_level: Number(activity.value),
+      sleep_hours: Number(sleep.value),
+      family_history: Number(family.value),
+      sugar_intake: Number(sugar.value),
+      stress_level: Number(stress.value)
+    })
+  })
+  .then(response => response.json())
+  .then(data => {
+    result.style.display = "block";
+    result.innerHTML = `
+      <strong>Risk Percentage:</strong> ${data.risk_percentage}%<br>
+      <strong>Risk Category:</strong> ${data.risk_category}<br>
+      <strong>Confidence:</strong> ${data.confidence}
+    `;
+  })
+  .catch(error => {
+    result.style.display = "block";
+    result.innerHTML = "❌ Backend not reachable. Is server running?";
+  });
+}
+</script>
+
+</body>
+</html>
