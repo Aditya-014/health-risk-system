@@ -45,15 +45,15 @@ def lifestyle_risk(data):
 
 @app.post("/predict")
 def predict(data: HealthInput):
-    # Dummy mapping for ML input shape
+
     ml_input = np.array([[ 
-        0,  # Pregnancies placeholder
-        120,  # Glucose placeholder
-        70,  # BP placeholder
-        20,  # SkinThickness
-        80,  # Insulin
+        0,
+        120,
+        70,
+        20,
+        80,
         data.bmi,
-        0.5,  # DPF
+        0.5,
         data.age
     ]])
 
@@ -63,7 +63,14 @@ def predict(data: HealthInput):
     prob_gb = gb_model.predict_proba(ml_scaled)[0][1]
 
     ml_risk = (prob_lr + prob_gb) / 2 * 100
-    life_risk = lifestyle_risk(data)
+
+    life_risk = (
+        data.activity_level * 2 +
+        data.sugar_intake * 3 +
+        data.stress_level * 2 +
+        (4 if data.sleep_hours < 6 else 0) +
+        data.family_history * 5
+    )
 
     final_risk = 0.6 * ml_risk + 0.4 * life_risk
 
@@ -74,11 +81,10 @@ def predict(data: HealthInput):
     else:
         category = "High"
 
-    confidence = min(90, 70 + len(data.dict()) * 2)
+    confidence = "85%"
 
     return {
         "risk_percentage": round(final_risk, 2),
         "risk_category": category,
-        "confidence": f"{confidence}%",
-        "message": "This is a lifestyle-based risk estimate, not a diagnosis."
+        "confidence": confidence
     }
